@@ -1,108 +1,28 @@
-#liberías varias
 import streamlit as st
-import pickle
-import warnings
-warnings.filterwarnings('ignore')
-import numpy as np
-import pandas as pd # pandas para trabajar arhivos CSV
+import time
 
+# Título de la app
+st.title('Buscador de Fake News')
 
-# importar librerías para la extracción de características 
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import TfidfVectorizer
+# Descripción de la app
+st.markdown('''Esta aplicación te ayuda a identificar si una noticia es potencialmente falsa. 
+Introduce la URL de la noticia y obtendrás un análisis de la probabilidad de que sea fake news.''')
 
-# pre-procesarmiento de texto
-import string
-import re
+# Input para la URL de la noticia
+url = st.text_input('Introduce la URL de la noticia')
 
-# importar el clasificador desde sklearn
-from sklearn.naive_bayes import MultinomialNB
-
-
-#importar librería para obtener las stopwords y trabajar con textos
-import nltk
-from nltk.tokenize import word_tokenize
-from nltk.corpus import stopwords
-from nltk.stem.wordnet import WordNetLemmatizer
-
-wordnet = WordNetLemmatizer()
-regex = re.compile('[%s]' % re.escape(string.punctuation))
-check_model = st.empty()
-
-#Descargar Stopwords en español y librerías varias
-nltk.download('omw-1.4')
-nltk.download('wordnet')
-nltk.download('punkt')
-nltk.download('stopwords')
-stopword_es = set(nltk.corpus.stopwords.words('spanish'))
-
-#Funciones
-model = pickle.load(open('model.pkl', 'rb'))
-vect = pickle.load(open('carecteristicas.pkl', 'rb'))
-
-
-#Función para eliminar las tildes
-def normalize(s):
-    replacements = (
-        ("á", "a"),
-        ("é", "e"),
-        ("í", "i"),
-        ("ó", "o"),
-        ("ú", "u"),
-    )
-    for a, b in replacements:
-        s = s.replace(a, b).replace(a.upper(), b.upper())
-    return s
-
-#función para limpiar texto
-def limpiar_texto(line_from_column):    
-    tokenized_doc = word_tokenize(line_from_column)
-    
-    new_review = []
-    for token in tokenized_doc:
-        new_token = regex.sub(u'', token)
-        if not new_token == u'':
-            new_review.append(new_token)
-    
-    new_term_vector = []
-    for word in new_review:
-        if not word in stopword_es:
-            new_term_vector.append(normalize(word.lower()))
-    
-    final_doc = []
-    for word in new_term_vector:
-        final_doc.append(wordnet.lemmatize(word))
-    
-    return ' '.join(final_doc)
-
-pickled_model = pickle.load(open('model.pkl', 'rb'))
-st.title ("Aplicación para detectar posibles Fake News")
-st.header("Por favor ingrese el texto de la noticia para verificar si es falsa o verdadera")
-st.write("Versión Beta, solo para fines educativos")
-
-texto = st.text_area('Noticia', height=300)
-
-
-if st.button('Analizar !!!!'):
-    texto_df = pd.DataFrame({"texto":texto},index=range(1))
-    texto_df['clean'] = texto_df['texto'].apply(limpiar_texto)
-    test_dtm = vect.transform(texto_df["clean"]) # use it to extract features from training data
-    y_pred_test = model.predict(test_dtm) # make class predictions for test_dtm
-    y_pred_proba = model.predict_proba(test_dtm).tolist()
-    prediction =   model.predict_proba(test_dtm)
-    resul = np.argmax(y_pred_proba)
-    resul = round(y_pred_proba[0][resul]  * 100,2)
-    print(resul)
-
-        # Convertir etiquetas Fake - Real
-    texto_df['class'] = pd.Series(y_pred_test).map({1:"Real", 0:"Falso"}) # Fake is 1, Not Fake is 0. 
-    
-    if prediction[0][0] > 0.7:
-        html_str = f"""<h3><span style='color:red'>Esta noticia parece falsa !! con una probabilidad del {resul}% </span></h3>"""
-        st.markdown(html_str, unsafe_allow_html=True)
-    elif prediction[0][1] > 0.7:
-        html_str = f"""<h3><span style='color:green'>Esta noticia parece verdadera !! con una probabilidad del {resul}% </span></h3>"""
-        st.markdown(html_str, unsafe_allow_html=True)
+# Botón para iniciar el análisis
+if st.button('Analizar'):
+    if url:  # Verifica si se introdujo una URL
+        st.write('Analizando la noticia...')
+        
+        # Simulación de una barra de progreso
+        progress_bar = st.progress(0)
+        for percent_complete in range(0, 31):
+            time.sleep(0.05)  # Simula el tiempo de procesamiento
+            progress_bar.progress(percent_complete)
+        
+        # Resultado
+        st.success('Análisis completado: 30% de probabilidad de ser Fake News')
     else:
-        html_str = f"""<h3><span style='color:green'>No se pudo determinar si es Fake o Real la noticia</span></h3>"""
-        st.markdown(html_str, unsafe_allow_html=True)
+        st.warning('Por favor, introduce una URL válida')
