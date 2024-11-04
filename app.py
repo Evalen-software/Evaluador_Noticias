@@ -11,7 +11,7 @@ import seaborn as sns
 
 # Configuración de la página
 st.set_page_config(page_title="Buscador de Fake News", page_icon="logo.png", layout="wide")
-st.image("infocomun.png", width=400)
+st.image("Logo Contrasta con letras.jpg", width=400)
 
 # Funciones de scraping
 def get_article_info_elplural(url):
